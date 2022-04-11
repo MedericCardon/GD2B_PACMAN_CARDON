@@ -12,14 +12,17 @@ let map;
 
 let gridSize = 32;
 let offset=parseInt(gridSize/2);
+var x;
 
 tilesPath = 'assets/background.png';
 mapPath = 'assets/codepen-level.json';
 tiles = "pacman-tiles";
 
-var test = 11;
 
 var ghost;
+this.moveTo = new Phaser.Geom.Point();
+
+var startMovGhost = true;
 
 
 class pacman extends Phaser.Scene{
@@ -31,8 +34,6 @@ class pacman extends Phaser.Scene{
     preload(){
         this.load.image('background','assets/background.png');
         this.load.image('ghost','assets/ghost.png');
-        
-        //this.load.spritesheet('pacman','assets/pacman_spriteSheet.png',{ frameWidth: 576, frameHeight: 32 });
         this.load.image('player','assets/pacman.png');
         this.load.tilemapTiledJSON("map", mapPath);
         this.load.image(tiles, tilesPath);
@@ -40,26 +41,10 @@ class pacman extends Phaser.Scene{
 
     create(){
         this.add.image(0,0,'background').setOrigin(0);
-        
         player = this.physics.add.sprite(100,110,'player').setScale(0.85);
         player.setCollideWorldBounds(true);
-
         ghost = this.physics.add.sprite(500,110,'ghost').setScale(0.85);
-
-        /*this.anims.create({
-            key: 'idle',
-            frames: this.anims.generateFrameNumbers('pacman', { start: 0, end: 13 }),
-            frameRate: 5,
-            repeat: 0
-        });
-
-        this.anims.create({
-            key: 'run',
-            frames: this.anims.generateFrameNumbers('pacman', { start: 9, end: 12 }),
-            frameRate: 5,
-            repeat: 0
-        });*/
-
+        
         keyZ = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.Z);
         keyQ = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.Q);
         keyS = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S);
@@ -79,13 +64,10 @@ class pacman extends Phaser.Scene{
 
         this.physics.add.collider(ghost, layer1);
         this.physics.add.collider(ghost, layer2);
-        //this.physics.add.collider(ghostsGroup, layer1);
     }
 
     update(){
-
-        moveGhost();
-        //this.physics.moveToObject(ghost, player, 50);
+       
 
         if (keyD.isUp || keyQ.isUp || keyZ.isUp || keyS.isUp){
             player.setVelocityX(0);
@@ -111,10 +93,9 @@ class pacman extends Phaser.Scene{
 
     var Ghost = function() {
         var count = 0
-        var currentState = new Red(this)
+        var currentState = new Etat1(this)
 
         this.change = function(state) {
-            // limits number of changes
             if (count++ >= 10) return
             currentState = state
             currentState.go()
@@ -125,41 +106,32 @@ class pacman extends Phaser.Scene{
         }
     }
 
-    var Red = function(light) {
+    var Etat1 = function(light) {
         this.light = light
 
         this.go = function() {
-            if(test <= 10){
-                log.add('Red --> for 1 minute')
-                //light.change(new Green(light))
+            if(ghost.body.position.x >= player.body.position.x){
+                log.add('etat 1')
+                moveGhost(x);
+            }
+            if(ghost.body.position.x <= player.body.position.x){
+                light.change(new Etat2(light))
             }
             
         }
     }
 
-    
-
-    //player.body.blocked.right
-
-    /*var Yellow = function(light) {
+    var Etat2 = function(light) {
         this.light = light
 
         this.go = function() {
-            log.add('Yellow --> for 10 seconds')
-            light.change(new Red(light))
+            if(ghost.body.position.x <= player.body.position.x){
+                log.add('etat 2')
+                moveGhostSpeed(x);
+            }
         }
     }
 
-    var Green = function(light) {
-        this.light = light
-
-        this.go = function() {
-            log.add('Green --> for 1 minute')
-            light.change(new Yellow(light))
-        }
-    }*/
-
-    // log helper
 
     var log = (function() {
     var log = ''
@@ -187,12 +159,64 @@ class pacman extends Phaser.Scene{
         }
 }
 
-function moveGhost(){
-    ghost.setVelocityX(50)
-    if(ghost.body.blocked.right){
-        ghost.setVelocityX(-50);
+function moveGhost(x){
+    if (startMovGhost == true){
+        ghost.setVelocityY(-50);
     }
+     if (ghost.body.blocked.right || ghost.body.blocked.left || ghost.body.blocked.down || ghost.body.blocked.up){
+            x = getRandomInt(4)
+            console.log(x);
+            if(x == 1){
+                ghost.setVelocityY(50);
+                startMovGhost = false;
+            }
+            else if (x == 0){
+                ghost.setVelocityY(-50);
+                startMovGhost = false;
+            }
+            else if (x == 2){
+                ghost.setVelocityX(-50)
+                startMovGhost = false;
+            }
+            else if (x == 3){
+                ghost.setVelocityX(50)
+                startMovGhost = false;
+            }
+        }
+
 }
+
+
+function moveGhostSpeed(x){
+    if (startMovGhost == true){
+        ghost.setVelocityY(-150);
+    }
+    if (ghost.body.blocked.right || ghost.body.blocked.left || ghost.body.blocked.down || ghost.body.blocked.up){
+        x = getRandomInt(4)
+        console.log(x);
+        if(x == 1){
+            ghost.setVelocityY(150);
+            startMovGhost = false;
+        }
+        else if (x == 0){
+            ghost.setVelocityY(-150);
+            startMovGhost = false;
+        }
+        else if (x == 2){
+            ghost.setVelocityX(-150)
+            startMovGhost = false;
+        }
+        else if (x == 3){
+            ghost.setVelocityX(150)
+            startMovGhost = false;
+        }
+    }
+}        
+
+function getRandomInt(max) {
+    return Math.floor(Math.random() * max);
+  }
+  
 
 
 
