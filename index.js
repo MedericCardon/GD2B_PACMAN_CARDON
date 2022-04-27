@@ -20,9 +20,10 @@ tiles = "pacman-tiles";
 
 
 var ghost;
-this.moveTo = new Phaser.Geom.Point();
-
 var startMovGhost = true;
+
+var ghostOrange;
+
 
 
 class pacman extends Phaser.Scene{
@@ -32,18 +33,18 @@ class pacman extends Phaser.Scene{
     init(data){
     }
     preload(){
-        this.load.image('background','assets/background.png');
         this.load.image('ghost','assets/ghost.png');
+        this.load.image('ghostOrange','assets/ghost2.png');
         this.load.image('player','assets/pacman.png');
         this.load.tilemapTiledJSON("map", mapPath);
         this.load.image(tiles, tilesPath);
     }
 
     create(){
-        this.add.image(0,0,'background').setOrigin(0);
-        player = this.physics.add.sprite(100,110,'player').setScale(0.85);
+        player = this.physics.add.sprite(100,110,'player').setScale(0.80);
         player.setCollideWorldBounds(true);
         ghost = this.physics.add.sprite(500,110,'ghost').setScale(0.85);
+        ghostOrange = this.physics.add.sprite(300,430,'ghostOrange').setScale(0.85);
         
         keyZ = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.Z);
         keyQ = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.Q);
@@ -64,11 +65,16 @@ class pacman extends Phaser.Scene{
 
         this.physics.add.collider(ghost, layer1);
         this.physics.add.collider(ghost, layer2);
+
+        this.physics.add.collider(ghost, layer1);
+        this.physics.add.collider(ghost, layer2);
+
+        this.physics.add.collider(ghostOrange, layer1);
+        this.physics.add.collider(ghostOrange, layer2);
     }
 
     update(){
        
-
         if (keyD.isUp || keyQ.isUp || keyZ.isUp || keyS.isUp){
             player.setVelocityX(0);
             player.setVelocityY(0);
@@ -132,6 +138,47 @@ class pacman extends Phaser.Scene{
         }
     }
 
+    var GhostOrange = function() {
+        var count = 0
+        var currentState = new GhostOrangeEtat1(this)
+
+        this.change = function(state) {
+            if (count++ >= 10) return
+            currentState = state
+            currentState.go()
+        }
+
+        this.start = function() {
+            currentState.go()
+        }
+    }
+
+    var GhostOrangeEtat1 = function(light2) {
+        this.light2 = light2
+
+        this.go = function() {
+            //if(ghostOrange.body.position.x >= player.body.position.x){
+                log.add('etat 1')
+                moveGhostOrange(x);
+           // }
+            /*if(ghost.body.position.x <= player.body.position.x){
+                light.change(new GhostOrangeEtat2(light))
+            }*/
+            
+        }
+    }
+
+    /*var GhostOrangeEtat2 = function(light) {
+        this.light = light
+
+        this.go = function() {
+            if(ghost.body.position.x <= player.body.position.x){
+                log.add('etat 2')
+                moveGhostSpeed(x);
+            }
+        }
+    }*/
+
 
     var log = (function() {
     var log = ''
@@ -149,7 +196,9 @@ class pacman extends Phaser.Scene{
 
     function run() {
     var light = new Ghost()
+    var light2 = new GhostOrange()
     light.start()
+    light2.start()
 
     log.show()
     }
@@ -175,11 +224,37 @@ function moveGhost(x){
                 startMovGhost = false;
             }
             else if (x == 2){
-                ghost.setVelocityX(-50)
+                ghost.setVelocityX(-50);
                 startMovGhost = false;
             }
             else if (x == 3){
-                ghost.setVelocityX(50)
+                ghost.setVelocityX(50);
+                startMovGhost = false;
+            }
+        }
+}
+
+function moveGhostOrange(x){
+    if (startMovGhost == true){
+        ghostOrange.setVelocityY(100);
+    }
+     if (ghostOrange.body.blocked.right || ghostOrange.body.blocked.left || ghostOrange.body.blocked.down || ghostOrange.body.blocked.up){
+            x = getRandomInt(4)
+            console.log(x);
+            if(x == 1){
+                ghostOrange.setVelocityY(100)
+                startMovGhost = false;
+            }
+            else if (x == 0){
+                ghostOrange.setVelocityY(-100);
+                startMovGhost = false;
+            }
+            else if (x == 2){
+                ghostOrange.setVelocityX(-100)
+                startMovGhost = false;
+            }
+            else if (x == 3){
+                ghostOrange.setVelocityX(100);
                 startMovGhost = false;
             }
         }
